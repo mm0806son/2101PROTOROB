@@ -23,7 +23,7 @@ long nowPosition  = -999;
 
 void loop() {
   long newPosition = myEnc.read();
-  if (newPosition != nowPosition) {
+  if (newPosition - nowPosition>50||newPosition - nowPosition<-50) {
     nowPosition = newPosition;
     Serial.println(nowPosition);
   }
@@ -45,6 +45,12 @@ int PWM_PID (int nowPosition, int target)
 {
   static float Bias, Pwm, Integral_bias, Last_Bias;
   Bias = target - nowPosition;
+  if (Bias > 0) {
+    digitalWrite(direct, HIGH);
+  } else {
+    Bias = -Bias;
+    digitalWrite(direct, LOW);
+  }
   Integral_bias += Bias;
   Pwm = Position_KP * Bias + Position_KI * Integral_bias + Position_KD * (Bias - Last_Bias);
   Last_Bias = Bias;
@@ -60,10 +66,10 @@ int PWM_PID (int nowPosition, int target)
 }
 
 void turn(int nowPosition, int target) {
-  if (target > nowPosition) {
-    digitalWrite(direct, HIGH);
-  } else {
-    digitalWrite(direct, LOW);
-  }
+//  if (target > nowPosition) {
+//    digitalWrite(direct, HIGH);
+//  } else {
+//    digitalWrite(direct, LOW);
+//  }
   analogWrite(motor, PWM_PID (nowPosition, target));
 }
