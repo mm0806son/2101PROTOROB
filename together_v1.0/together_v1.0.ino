@@ -35,10 +35,9 @@ ISR(TIMER2_OVF_vect) {
     if (newPosition - nowPosition > 20 || newPosition - nowPosition < -20) {
       nowPosition = newPosition;
       Serial.print("nowPosition: "); Serial.println(nowPosition);
-      //target = map(temperature, 10, 30, 0, 475);
-      //Serial.print("target: "); Serial.println(target);
       //turn(nowPosition, target);turn放在这里就不能正常运行，好神奇
     }
+    //Serial.print("nowPosition: "); Serial.println(nowPosition);
     turn(nowPosition, target);
   }
 }
@@ -54,12 +53,10 @@ void loop() {
   Serial.print("temperature: "); Serial.println(temperature);
   target = map(temperature, 10, 30, 0, 475);
   Serial.print("target: "); Serial.println(target);
-
-
   delay(1000);
 }
 
-int PWM_PID (int nowPosition, int target)
+void turn (int nowPosition, int target)
 {
   static float Bias, Pwm, Integral_bias, Last_Bias;
   Bias = target - nowPosition;
@@ -73,21 +70,10 @@ int PWM_PID (int nowPosition, int target)
   Pwm = Position_KP * Bias + Position_KI * Integral_bias + Position_KD * (Bias - Last_Bias);
   Last_Bias = Bias;
   if (Pwm > 255) {
-    return 255;
+    Pwm = 255;
   }
-  else if (Pwm < -255) {
-    return -255;
+  else if (Pwm < -255) {//此部分删除会导致电机震荡，原因不明
+    Pwm = -255;
   }
-  else {
-    return Pwm;
-  }
-}
-
-void turn(int nowPosition, int target) {
-  //  if (target > nowPosition) {
-  //    digitalWrite(direct, HIGH);
-  //  } else {
-  //    digitalWrite(direct, LOW);
-  //  }
-  analogWrite(motor, PWM_PID (nowPosition, target));
+  analogWrite(motor, Pwm);
 }
